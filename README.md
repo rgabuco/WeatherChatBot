@@ -27,25 +27,30 @@ A modern web interface for interacting with an AWS Lex V2 weather chatbot.
    - Bot Name
 
 ### 2. AWS IAM Setup
-1. Create an IAM user with the following permissions:
-   ```json
-   {
-       "Version": "2012-10-17",
-       "Statement": [
-           {
-               "Effect": "Allow",
-               "Action": [
-                   "lex:RecognizeText"
-               ],
-               "Resource": [
-                   "arn:aws:lex:REGION:ACCOUNT_ID:bot/BOT_ID/ALIAS_ID/*"
-               ]
-           }
-       ]
-   }
-   ```
-2. Generate Access Key and Secret Access Key for this user
-3. Keep these credentials secure
+1. Create an IAM user in AWS Console:
+   - Go to IAM service
+   - Click "Users" → "Create user"
+   - Enter a user name
+   - Select "Access key - Programmatic access"
+
+2. Attach required managed policies:
+   - In the "Set permissions" step, choose "Attach existing policies directly"
+   - Search and select the following AWS managed policies:
+     - `AmazonLexFullAccess`
+     - `AmazonS3FullAccess`
+   - Click "Next" and complete user creation
+
+3. Generate and secure credentials:
+   - After user creation, you'll see the Access Key ID and Secret Access Key
+   - Download the credentials CSV file or copy the keys
+   - Store these credentials securely - you'll need them for the frontend configuration
+   - Note: This is your only chance to view/download the secret key
+
+4. Best practices for security:
+   - Never share or commit your access keys
+   - Consider using AWS Secrets Manager or Parameter Store for production
+   - Regularly rotate your access keys
+   - Enable MFA for the IAM user
 
 ### 3. OpenWeather API Setup
 1. Sign up for an OpenWeather account
@@ -75,12 +80,11 @@ A modern web interface for interacting with an AWS Lex V2 weather chatbot.
 
 ### 5. Lambda Function Setup
 1. Create a new Lambda function
-2. Upload the `lambda_function.py` code
-3. Set the handler to `lambda_function.lambda_handler`
-4. Add the following environment variable:
+2. Copy the content of `lambda_function.py` code
+3. Add the following environment variable:
    - Key: `OPENWEATHER_API_KEY`
    - Value: Your OpenWeather API key
-5. Add the requests layer:
+4. Add the requests layer:
    1. Go to Layers → Create layer
    2. Upload the provided `requests-layer.zip` file from this repository
    3. Choose compatible runtimes (Python 3.13, etc.)
