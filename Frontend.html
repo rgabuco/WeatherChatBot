@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather Chatbot</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #background1, #background2 {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -2;
+      background: linear-gradient(135deg, #f0f0f0, #ffffff);
+      transition: opacity 2s ease;
+    }
+    #background2 { opacity: 0; }
+
+    #chatbox {
+      border: 1px solid #ccc;
+      padding: 1rem;
+      background: #fff;
+      height: 300px;
+      overflow-y: scroll;
+      position: relative;
+      z-index: 1;
+    }
+    .msg { margin: 0.5rem 0; opacity: 0; animation: fadeIn 0.5s forwards; }
+    .user { font-weight: bold; color: #0077cc; }
+    .bot { color: #333; }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="background1"></div>
+<div id="background2"></div>
+
+<h2>🌤️ Weather Chatbot</h2>
+<div id="chatbox"></div>
+<form id="chatForm">
+  <input type="text" id="userInput" placeholder="Ask about the weather..." style="width: 80%;" required/>
+  <button type="submit">Send</button>
+</form>
+
+<script>
+  const chatbox = document.getElementById("chatbox");
+  const form = document.getElementById("chatForm");
+  const input = document.getElementById("userInput");
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const userText = input.value;
+    input.value = "";
+
+    chatbox.innerHTML += `<div class="msg user">You: ${userText}</div>`;
+    chatbox.scrollTop = chatbox.scrollHeight;
+
+    // Replace with our chatbot API
+   
+    // const res = await fetch("https://your-weather-chatbot-api.com/ask", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ message: userText })
+    // });
+    // const data = await res.json();
+    // const botReply = data.reply;
+   
+
+    // TEMP simulated reply 
+    const botReply = "I'm a fake bot for now. Ask me about the weather!";
+
+    setTimeout(() => {
+      chatbox.innerHTML += `<div class="msg bot">Bot: ${botReply}</div>`;
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }, 600);
+  };
+
+  // Seasonal backgrounds
+  const seasons = [
+    ["#90EE90", "#FFD700"],   // Summer (light green to gold)
+    ["#FF8C00", "#8B4513"],   // Fall (orange to brown)
+    ["#87CEFA", "#F0F8FF"],   // Winter (sky blue to snow white)
+    ["#FFB6C1", "#98FB98"]    // Spring (pink to mint)
+  ];
+
+  let current = 0;
+  let bg1 = document.getElementById('background1');
+  let bg2 = document.getElementById('background2');
+  let activeBackground = 1;
+
+  function updateBackground() {
+    const colors = seasons[current];
+    if (activeBackground === 1) {
+      bg2.style.background = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
+      bg2.style.opacity = 1;
+      bg1.style.opacity = 0;
+      activeBackground = 2;
+    } else {
+      bg1.style.background = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
+      bg1.style.opacity = 1;
+      bg2.style.opacity = 0;
+      activeBackground = 1;
+    }
+    current = (current + 1) % seasons.length;
+  }
+
+  setInterval(updateBackground, 8000); 
+</script>
+
+</body>
+</html>
