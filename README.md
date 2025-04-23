@@ -6,8 +6,31 @@ A modern web interface for interacting with an AWS Lex V2 weather chatbot.
 - Real-time chat interface with AWS Lex V2
 - Modern, responsive design
 - Typing indicators
-- Message history
 - Mobile-friendly layout
+
+## Sample Prompts
+Here are valid examples you can try with the chatbot:
+
+1. Basic City Queries
+- "Weather in Tokyo"
+- "What's the weather in New York"
+- "How's the weather in London"
+- "Temperature in Paris"
+- "Current temperature in Paris"
+
+2. City with Country Format
+- "Weather in Paris, France"
+- "Temperature in Tokyo, Japan"
+- "What's the weather in Rome, Italy"
+- "How's the weather in Berlin, Germany"
+
+Note: The chatbot can understand variations of prompts using country and will help suggest major cities if a location is not found.
+
+3. Country Format
+- "Weather in France"
+- "Temperature in Japan"
+- "What's the weather in Italy"
+- "How's the weather in Germany"
 
 ## Prerequisites
 - AWS Account with access to Amazon Lex V2
@@ -17,16 +40,53 @@ A modern web interface for interacting with an AWS Lex V2 weather chatbot.
 
 ## Setup Instructions
 
-### 1. AWS Lex V2 Configuration
+### 1. Lambda Function Setup
+1. Create a new Lambda function:
+   - Go to AWS Lambda console
+   - Click "Create function"
+   - Choose "Author from scratch"
+   - Name your function (e.g., "WeatherBotFunction")
+   - Select Runtime: Python 3.9 or later
+   - Create the function
+
+2. Copy the content of `lambda_function.py` code into the function
+
+3. Add the following environment variable:
+   - Key: `OPENWEATHER_API_KEY`
+   - Value: Your OpenWeather API key
+
+4. Add the requests layer:
+   1. Go to Layers → Create layer
+   2. Upload the provided `requests-layer.zip` file from this repository
+   3. Choose compatible runtimes (Python 3.13, etc.)
+   4. Create the layer
+   5. Go back to your Lambda function
+   6. Click on Layers → Add a layer
+   7. Choose "Custom layers" and select your created requests layer
+   8. Add the layer to your function
+
+5. Configure Lambda permissions:
+   - In the Configuration tab, select "Permissions"
+   - Click on the execution role
+   - Add the following managed policies:
+     - `AWSLexRunBotsPolicy`
+     - `AWSLambdaBasicExecutionRole`
+
+### 2. AWS Lex V2 Configuration
 1. Create and configure your Lex V2 bot in AWS Console
 2. Build and publish a version of your bot
 3. Create an alias (e.g., "Prod") for the published version
-4. Note down the following values from your Lex console:
+4. Link the Lambda function:
+   - Go to your bot's "Languages" section
+   - Under "Source and voice", select "AWS Lambda function"
+   - Choose the Lambda function you created
+   - Click "Save"
+5. Note down the following values from your Lex console:
    - Bot ID
    - Bot Alias ID
    - Bot Name
 
-### 2. AWS IAM Setup
+### 3. AWS IAM Setup
 1. Create an IAM user in AWS Console:
    - Go to IAM service
    - Click "Users" → "Create user"
@@ -52,14 +112,14 @@ A modern web interface for interacting with an AWS Lex V2 weather chatbot.
    - Regularly rotate your access keys
    - Enable MFA for the IAM user
 
-### 3. OpenWeather API Setup
+### 4. OpenWeather API Setup
 1. Sign up for an OpenWeather account
 2. Generate an API key from your account dashboard
 3. Update the Lambda function with your API key:
    - Open `lambda_function.py`
    - Replace `YOUR_OPENWEATHER_API_KEY` with your actual API key
 
-### 4. Frontend Configuration
+### 5. Frontend Configuration
 1. Update `config.js` with your AWS credentials and bot details:
    ```javascript
    const config = {
@@ -77,22 +137,6 @@ A modern web interface for interacting with an AWS Lex V2 weather chatbot.
        }
    };
    ```
-
-### 5. Lambda Function Setup
-1. Create a new Lambda function
-2. Copy the content of `lambda_function.py` code
-3. Add the following environment variable:
-   - Key: `OPENWEATHER_API_KEY`
-   - Value: Your OpenWeather API key
-4. Add the requests layer:
-   1. Go to Layers → Create layer
-   2. Upload the provided `requests-layer.zip` file from this repository
-   3. Choose compatible runtimes (Python 3.13, etc.)
-   4. Create the layer
-   5. Go back to your Lambda function
-   6. Click on Layers → Add a layer
-   7. Choose "Custom layers" and select your created requests layer
-   8. Add the layer to your function
 
 ### 6. S3 Bucket Setup (for hosting)
 1. Create an S3 bucket
@@ -149,14 +193,8 @@ A modern web interface for interacting with an AWS Lex V2 weather chatbot.
    - config.js
 2. Access your website through the S3 bucket's static website hosting URL
 
-## Troubleshooting
-1. Check browser console for errors
-2. Verify AWS credentials and permissions
-3. Ensure Lex bot is properly built and published
-4. Verify CORS configuration if accessing from different domain
-5. Check network tab for API call details
 
-## Testing with Postman
+## Testing the chatbot with Postman
 1. Set up the request:
    - Method: POST
    - URL: `https://runtime-v2-lex.{REGION}.amazonaws.com/bots/{BOT_ID}/botAliases/{ALIAS_ID}/botLocales/en_US/sessions/{SESSION_ID}/text`

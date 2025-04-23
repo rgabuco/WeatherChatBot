@@ -373,7 +373,6 @@ def get_major_cities(country):
             ('Lyon', 'second city'),
             ('Marseille', 'mediterranean port'),
             ('Toulouse', 'aerospace center'),
-            ('Nice', 'riviera city'),
             ('Bordeaux', 'wine capital'),
             ('Strasbourg', 'european hub')
         ],
@@ -382,7 +381,6 @@ def get_major_cities(country):
             ('Hamburg', 'major port'),
             ('Munich', 'southern capital'),
             ('Frankfurt', 'financial hub'),
-            ('Cologne', 'cultural center'),
             ('Stuttgart', 'auto city'),
             ('Dusseldorf', 'fashion capital')
         ],
