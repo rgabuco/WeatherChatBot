@@ -156,6 +156,47 @@ A modern web interface for interacting with an AWS Lex V2 weather chatbot.
 4. Verify CORS configuration if accessing from different domain
 5. Check network tab for API call details
 
+## Testing with Postman
+1. Set up the request:
+   - Method: POST
+   - URL: `https://runtime-v2-lex.{REGION}.amazonaws.com/bots/{BOT_ID}/botAliases/{ALIAS_ID}/botLocales/en_US/sessions/{SESSION_ID}/text`
+   - Replace placeholders:
+     - `{REGION}`: Your AWS region (e.g., us-east-1)
+     - `{BOT_ID}`: Your Lex bot ID
+     - `{ALIAS_ID}`: Your bot alias ID
+     - `{SESSION_ID}`: Any unique session identifier
+
+2. Add AWS authentication:
+   - Type: AWS Signature
+   - AccessKey: Your AWS access key
+   - SecretKey: Your AWS secret key
+   - AWS Region: Your region
+   - Service Name: lex
+   - Session Token: Leave empty unless using temporary credentials
+
+3. Add request body:
+   ```json
+   {
+       "text": "What's the weather in London?",
+       "sessionId": "test"
+   }
+   ```
+
+4. Add headers:
+   - Content-Type: application/json
+   - Accept: application/json
+
+5. Common validation errors:
+   - "Value at 'text' failed to satisfy constraint": Make sure to use "text" (not "inputText") in request body
+   - "Member must not be null": The "text" field cannot be empty
+   - "SessionId must not be null": Make sure to include a sessionId
+
+6. Common response codes:
+   - 200: Successful request
+   - 400: Invalid request parameters
+   - 403: Authentication failed
+   - 404: Bot/alias not found
+
 ## Common Issues
 - 404 Error: Check Bot ID and Alias ID
 - Authentication errors: Verify AWS credentials

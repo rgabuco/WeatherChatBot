@@ -1,6 +1,8 @@
 import json
 import requests
+import os
 from datetime import datetime
+import string
 
 def get_country_code(country_name):
     """Convert country names to ISO country codes"""
@@ -556,20 +558,42 @@ def suggest_cities():
     ]
     return suggestions[:]
 
+def clean_location_name(location):
+    """Clean location name by removing punctuation and extra whitespace"""
+    if not location:
+        return location
+    # Remove punctuation except hyphens and apostrophes
+    punctuation_to_remove = string.punctuation.replace("-", "").replace("'", "")
+    # First clean the ends of the string from all punctuation including ? . ! etc
+    location = location.strip(string.punctuation + ' ')
+    # Then only remove specific punctuation from within the string, keeping hyphens and apostrophes
+    location = ''.join(char for char in location if char not in punctuation_to_remove)
+    # Clean up any extra whitespace
+    location = ' '.join(location.split())
+    return location
+
 def parse_location(input_text):
     """Smart location parser"""
     if not input_text:
         return None, None
         
-    # Clean input and convert to lowercase for better matching
-    input_text = input_text.strip()
-    input_lower = input_text.lower()
-    
     # Debug print
-    print(f"Parsing location: '{input_text}', lowercase: '{input_lower}'")
+    print(f"Original input before cleaning: '{input_text}'")
+    
+    # Clean input and convert to lowercase for better matching
+    input_lower = input_text.lower().strip()
     
     # Comprehensive list of prefixes to remove
     prefixes_to_remove = [
+        # Temperature specific patterns
+        "what's the temperature in", "what is the temperature in",
+        "how's the temperature in", "how is the temperature in",
+        "temperature in", "temperature at", "temperature of",
+        "what's the temp in", "what is the temp in",
+        "how's the temp in", "how is the temp in",
+        "temp in", "temp at", "temp of",
+        "current temperature in", "current temp in",
+        
         # Question forms with "the weather"
         "how's the weather in", "how is the weather in",
         "what's the weather in", "what is the weather in",
@@ -596,18 +620,6 @@ def parse_location(input_text):
         "give me weather in", "give weather in",
         "check weather in",
         
-        # Temperature forms with "the"
-        "what's the temperature in", "what is the temperature in",
-        "how's the temperature in", "how is the temperature in",
-        "show me the temperature in", "show the temperature in",
-        "tell me the temperature in", "tell the temperature in",
-        
-        # Temperature forms without "the"
-        "what's temperature in", "what is temperature in",
-        "how's temperature in", "how is temperature in",
-        "show me temperature in", "show temperature in",
-        "tell me temperature in", "tell temperature in",
-        
         # Direct weather queries with "the"
         "the weather in", "the temperature in",
         "the forecast in", "the conditions in",
@@ -630,6 +642,11 @@ def parse_location(input_text):
         "can you show me the weather in", "could you show me the weather in",
         "can you check the weather in", "could you check the weather in",
         
+        # Temperature variations with can/could
+        "can you tell me the temperature in", "could you tell me the temperature in",
+        "can you show me the temperature in", "could you show me the temperature in",
+        "can you check the temperature in", "could you check the temperature in",
+        
         # Can you/Could you variations without "the"
         "can you tell me weather in", "could you tell me weather in",
         "can you show me weather in", "could you show me weather in",
@@ -639,6 +656,11 @@ def parse_location(input_text):
         "i want to know the weather in", "i'd like to know the weather in",
         "i want to see the weather in", "i'd like to see the weather in",
         "i want to check the weather in", "i'd like to check the weather in",
+        
+        # Temperature I want/I'd like variations
+        "i want to know the temperature in", "i'd like to know the temperature in",
+        "i want to see the temperature in", "i'd like to see the temperature in",
+        "i want to check the temperature in", "i'd like to check the temperature in",
         
         # I want/I'd like variations without "the"
         "i want to know weather in", "i'd like to know weather in",
@@ -658,7 +680,12 @@ def parse_location(input_text):
         
         # Additional variations
         "climate in", "climate of", "climate for",
-        "conditions in", "conditions at", "conditions for"
+        "conditions in", "conditions at", "conditions for",
+        
+        # Temperature specific typos/variations
+        "whats the temp in", "hows the temp in",
+        "temp of", "temperature of",
+        "degrees in", "how many degrees in"
     ]
     
     # Sort prefixes by length (longest first) to ensure we remove the most specific matches first
@@ -672,16 +699,20 @@ def parse_location(input_text):
             print(f"Removed prefix '{prefix}', new input: '{input_lower}'")
             break
     
+    # Now clean the remaining location name
+    input_text = clean_location_name(input_lower)
+    print(f"Final cleaned input: '{input_text}'")
+    
     # First check if the cleaned input exactly matches a country
-    country_code = get_country_code(input_lower)
+    country_code = get_country_code(input_text)
     if country_code:
-        print(f"Found country code '{country_code}' for cleaned input '{input_lower}'")
-        return None, input_lower
+        print(f"Found country code '{country_code}' for cleaned input '{input_text}'")
+        return None, input_text
     
     # Handle comma-separated locations with flexible spacing
-    if ',' in input_lower:
+    if ',' in input_text:
         # Split and clean each part, handling multiple spaces and empty parts
-        parts = [part.strip() for part in input_lower.split(',')]
+        parts = [part.strip() for part in input_text.split(',')]
         # Filter out empty parts
         parts = [part for part in parts if part]
         if len(parts) >= 2:
@@ -700,8 +731,8 @@ def parse_location(input_text):
             return part, None
     
     # Handle "in" keyword
-    if ' in ' in input_lower:
-        parts = input_lower.split(' in ')
+    if ' in ' in input_text:
+        parts = input_text.split(' in ')
         if len(parts) == 2:
             city = parts[0].strip()
             country = parts[1].strip()
@@ -718,7 +749,7 @@ def parse_location(input_text):
             return city, country
     
     # Try to match the entire input as a multi-word country
-    words = input_lower.split()
+    words = input_text.split()
     for i in range(len(words), 0, -1):
         potential_country = ' '.join(words[:i])
         country_code = get_country_code(potential_country)
@@ -782,15 +813,15 @@ def parse_location(input_text):
         'limón costa rica': 'Limón,CR'
     }
     
-    if input_lower in special_cases:
-        return parse_location(special_cases[input_lower])
+    if input_text in special_cases:
+        return parse_location(special_cases[input_text])
     
     # If no country is found, return the whole input as city
     # If input starts with 'the', remove it for city name
-    if input_lower.startswith('the '):
-        input_lower = input_lower[4:].strip()
-    print(f"No country found, treating '{input_lower}' as city")
-    return input_lower, None
+    if input_text.startswith('the '):
+        input_text = input_text[4:].strip()
+    print(f"No country found, treating '{input_text}' as city")
+    return input_text, None
 
 def get_weather_description(temp, feels_like, humidity, condition, wind_speed=None):
     """Generate a smart weather description"""
@@ -1006,49 +1037,50 @@ def handle_weather_intent(slots, original_input, api_key):
             original_input = original_input.strip()
             # Remove common prefixes - aligned with Lex utterance patterns
             prefixes = [
-                # What's the weather patterns
-                "what's the weather in",
-                "what is the weather in",
-                # How's the weather patterns
-                "how's the weather in",
-                "how is the weather in",
-                # Direct weather patterns
-                "weather in",
-                # Weather like patterns
-                "what's the weather like in",
-                "what is the weather like in",
+                # Temperature patterns
+                "what's the temperature in", "what is the temperature in",
+                "how's the temperature in", "how is the temperature in",
+                "what's the temp in", "what is the temp in",
+                "how's the temp in", "how is the temp in",
+                "temperature in", "temperature at", "temperature of",
+                "temp in", "temp at", "temp of",
+                "current temperature in", "current temp in",
+                "degrees in", "how many degrees in",
+                
+                # Weather patterns
+                "what's the weather in", "what is the weather in",
+                "how's the weather in", "how is the weather in",
+                "what's the weather like in", "what is the weather like in",
+                "how's the weather like in", "how is the weather like in",
+                "weather in", "weather for", "weather at",
+                
                 # Show/Tell patterns
-                "show me the weather in",
-                "tell me the weather in",
+                "show me the weather in", "tell me the weather in",
+                "show me the temperature in", "tell me the temperature in",
+                
                 # Simple patterns
-                "{city} weather",
-                "{city} , {country} weather",
-                "{country} weather",
-                # Forecast patterns
-                "{country} weather forecast",
-                "weather forecast for"
+                "weather", "temperature", "temp"
             ]
             
-            # Clean the input by removing prefixes
+            # Convert input to lowercase for matching
             input_lower = original_input.lower()
+            
+            # Sort prefixes by length (longest first) to ensure we remove the most specific matches first
+            prefixes.sort(key=len, reverse=True)
+            
+            # Clean the input by removing prefixes
             for prefix in prefixes:
-                prefix = prefix.lower()
                 if input_lower.startswith(prefix):
                     original_input = original_input[len(prefix):].strip()
-                    break
-                # Handle template patterns
-                cleaned_prefix = prefix.replace("{city}", "").replace("{country}", "").strip()
-                if cleaned_prefix and input_lower.startswith(cleaned_prefix):
-                    original_input = original_input[len(cleaned_prefix):].strip()
+                    print(f"Removed prefix '{prefix}', new input: '{original_input}'")
                     break
         
         print(f"Cleaned input: {original_input}")
         
-        # Smart input parsing
+        # Extract from slots if present
         city_input = None
         country_input = None
         
-        # Extract from slots if present
         if slots.get('City') and slots['City'].get('value', {}).get('interpretedValue'):
             city_input = slots['City']['value']['interpretedValue']
             
@@ -1210,6 +1242,17 @@ def handle_weather_intent(slots, original_input, api_key):
 
 def make_api_call(location, api_key, slots):
     """Make the weather API call and format response"""
+    # Handle city,country format properly
+    if ',' in location:
+        city, country = location.split(',')
+        # Clean city and country separately
+        city = clean_location_name(city)
+        country = clean_location_name(country)
+        location = f"{city},{country}"
+    else:
+        # Clean single location name
+        location = clean_location_name(location)
+        
     url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}&units=metric"
     print(f"Making API call to: {url}")
     
@@ -1324,7 +1367,9 @@ def lambda_handler(event, context):
         # Handle GetWeather intent
         if intent_name == 'GetWeather':
             slots = event.get('sessionState', {}).get('intent', {}).get('slots', {})
-            api_key = "YOUR_OPENWEATHER_API_KEY"  # Replace with your OpenWeather API key
+            api_key = os.environ.get('OPENWEATHER_API_KEY')
+            if not api_key:
+                raise Exception("OpenWeather API key not configured")
             return handle_weather_intent(slots, original_input, api_key)
 
         # Handle unknown intents
