@@ -1,12 +1,63 @@
-# Weather Chat Bot Frontend
+# Weather Chat Bot Project
 
-A modern web interface for interacting with an AWS Lex V2 weather chatbot.
+The Weather Chat Bot is a web application that combines AWS Lex V2's conversational AI with OpenWeather API to provide real-time weather information through a natural chat interface. Users can inquire about weather conditions worldwide using natural language, with the system capable of understanding various query formats and providing detailed weather reports including temperature, humidity, wind speed, and sunrise/sunset times. The application features a responsive design that works seamlessly across desktop and mobile devices, with a modern interface that includes typing indicators and real-time updates to enhance user experience.
 
 ## Features
-- Real-time chat interface with AWS Lex V2
-- Modern, responsive design
-- Typing indicators
+
+### Conversational Capabilities
+- Natural language processing for weather queries using AWS Lex V2
+- Context-aware conversations with country and city recognition
+- Intelligent city suggestions when only a country is specified
+- Support for various query formats (direct city, city-country pairs, abbreviations)
+- Helpful responses for unknown locations or invalid inputs
+
+### Weather Information
+- Real-time weather data from OpenWeather API
+- Temperature reporting in Celsius
+- Detailed weather conditions and descriptions
+- Humidity and wind speed information
+- Sunrise and sunset times for locations
+- Smart weather descriptions based on current conditions
+
+### Location Support
+- Global coverage for major cities worldwide
+- Support for city-country pair queries (e.g., "Paris, France")
+- Recognition of common city abbreviations (NYC, LA, SF, etc.)
+- Comprehensive country code mapping (200+ countries)
+- Major city suggestions for supported countries
+
+### User Interface
+- Responsive web design for desktop and mobile devices
+- Real-time chat interface
+- Typing indicators for better user experience
+- Clean and modern styling
 - Mobile-friendly layout
+
+### Technical Features
+- AWS Lambda integration for backend processing
+- Error handling and graceful fallbacks
+- Environment variable configuration for API keys
+- CORS-enabled for cross-origin requests
+- S3 static website hosting support
+
+## Technology Stack
+
+- **Frontend Technologies**
+  - HTML5, CSS3, JavaScript (ES6+)
+  - AWS SDK for JavaScript v3
+  - Responsive design with modern CSS
+
+- **Backend & Cloud Services**
+  - AWS Lambda (Python 3.13)
+  - AWS Lex V2 for Natural Language Processing
+  - Amazon S3 for static web hosting
+  - AWS IAM for access management
+
+- **External Services & Libraries**
+  - OpenWeather API for real-time weather data retrieval
+  - Python Requests library
+  - CORS configuration
+  - Environment variables
 
 ## Sample Prompts
 Here are valid examples you can try with the chatbot:
